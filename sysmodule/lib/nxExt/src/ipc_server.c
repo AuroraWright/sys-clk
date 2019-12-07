@@ -21,7 +21,7 @@ Result ipcServerInit(IpcServer* server, const char* name, u32 max_sessions)
     server->max = max_sessions + 1;
     server->count = 0;
 
-    Result rc = smRegisterService(&server->handles[0], server->name, false, max_sessions);
+    Result rc = smRegisterService(&server->handles[0], *(SmServiceName*)server->name, false, max_sessions);
     if(R_SUCCEEDED(rc))
     {
         server->count = 1;
@@ -36,7 +36,7 @@ Result ipcServerExit(IpcServer* server)
         svcCloseHandle(server->handles[i]);
     }
     server->count = 0;
-    return smUnregisterService(server->name);
+    return smUnregisterService(*(SmServiceName*)server->name);
 }
 
 static Result _ipcServerAddSession(IpcServer* server, Handle session)
