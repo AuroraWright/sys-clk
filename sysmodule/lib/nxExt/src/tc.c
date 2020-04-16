@@ -11,13 +11,14 @@
 #define NX_SERVICE_ASSUME_NON_DOMAIN
 
 #include "nxExt/tc.h"
+#include <stdatomic.h>
 
 static Service g_tcSrv;
-static u64 g_refCnt;
+static atomic_uint_least64_t g_refCnt;
 
 Result tcInitialize(void)
 {
-    atomicIncrement64(&g_refCnt);
+    atomic_fetch_add(&g_refCnt, 1);
 
     if (serviceIsActive(&g_tcSrv))
     {
@@ -36,7 +37,7 @@ Result tcInitialize(void)
 
 void tcExit(void)
 {
-    if (atomicDecrement64(&g_refCnt) == 0)
+    if (atomic_fetch_sub(&g_refCnt, 1) == 1)
     {
         serviceClose(&g_tcSrv);
     }

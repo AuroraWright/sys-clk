@@ -9,14 +9,15 @@
  */
 
 #include "nxExt/apm_ext.h"
+#include <stdatomic.h>
 
 static Service g_apmSrv;
 static Service g_apmSysSrv;
-static u64 g_refCnt;
+static atomic_uint_least64_t g_refCnt;
 
 Result apmExtInitialize(void)
 {
-    atomicIncrement64(&g_refCnt);
+    atomic_fetch_add(&g_refCnt, 1);
 
     if (serviceIsActive(&g_apmSrv))
     {
@@ -41,7 +42,7 @@ Result apmExtInitialize(void)
 
 void apmExtExit(void)
 {
-    if (atomicDecrement64(&g_refCnt) == 0)
+    if (atomic_fetch_sub(&g_refCnt, 1) == 1)
     {
         serviceClose(&g_apmSrv);
         serviceClose(&g_apmSysSrv);

@@ -45,11 +45,6 @@ void FileUtils::LogLine(const char *format, ...)
 
             if (file)
             {
-                struct timespec now;
-                clock_gettime(CLOCK_REALTIME, &now);
-                struct tm* nowTm = localtime(&now.tv_sec);
-
-                fprintf(file, "[%04d-%02d-%02d %02d:%02d:%02d.%03ld] ", nowTm->tm_year+1900, nowTm->tm_mon+1, nowTm->tm_mday, nowTm->tm_hour, nowTm->tm_min, nowTm->tm_sec, now.tv_nsec / 1000000UL);
                 vfprintf(file, format, args);
                 fprintf(file, "\n");
                 fclose(file);
@@ -72,7 +67,7 @@ void FileUtils::WriteContextToCsv(const SysClkContext* context)
         // Print header
         if(!ftell(file))
         {
-            fprintf(file, "timestamp,profile,app_tid");
+            fprintf(file, "profile,app_tid");
 
             for (unsigned int module = 0; module < SysClkModule_EnumMax; module++)
             {
@@ -87,14 +82,9 @@ void FileUtils::WriteContextToCsv(const SysClkContext* context)
             fprintf(file, "\n");
         }
 
-        struct timespec now;
-        clock_gettime(CLOCK_REALTIME, &now);
-
-        fprintf(file, "%ld%03ld,%s,%016lx", now.tv_sec, now.tv_nsec / 1000000UL, sysClkFormatProfile(context->profile, false), context->applicationTid);
-
         for (unsigned int module = 0; module < SysClkModule_EnumMax; module++)
         {
-            fprintf(file, ",%d", context->freqs[module]);
+            fprintf(file, "%d", context->freqs[module]);
         }
 
         for (unsigned int sensor = 0; sensor < SysClkThermalSensor_EnumMax; sensor++)
@@ -140,13 +130,6 @@ Result FileUtils::Initialize()
 
     if (R_SUCCEEDED(rc))
     {
-        rc = timeInitialize();
-    }
-
-    __libnx_init_time();
-
-    if (R_SUCCEEDED(rc))
-    {
         rc = fsInitialize();
     }
 
@@ -177,5 +160,4 @@ void FileUtils::Exit()
 
     fsdevUnmountAll();
     fsExit();
-    timeExit();
 }
